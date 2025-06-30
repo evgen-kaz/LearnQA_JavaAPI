@@ -1,0 +1,8 @@
+import org.junit.jupiter.api.Test;
+
+public class ProjectHelloFrom {
+    @Test
+    public void testHellFrom() {
+        System.out.println("Hello from Evgenia");
+    }
+}
