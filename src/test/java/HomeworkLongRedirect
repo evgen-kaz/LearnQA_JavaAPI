@@ -1,0 +1,41 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.Assert.assertEquals;
+
+public class HomeworkLongRedirect {
+
+    @Test
+    public void testRestAssured() {
+
+        RestAssured.baseURI = "https://playground.learnqa.ru/api/long_redirect";
+        int countRedirect = 0;
+        boolean shouldContinue = true;
+        while (shouldContinue) {
+            Response response = RestAssured
+                    .given() 
+                    .redirects()
+                    .follow(false)
+                    .when()
+                    .get()
+                    .andReturn(); 
+
+            int statusCode = response.getStatusCode();
+            if (statusCode >= 300 && statusCode <= 399) {
+                countRedirect++;
+
+                String locationHeader = response.getHeader("Location");
+                if (locationHeader != null && !locationHeader.isEmpty()) {
+                    RestAssured.baseURI = locationHeader; 
+                } else {
+                    shouldContinue = false;
+                }
+            } else {
+                shouldContinue = false;
+            }
+        }
+        System.out.println("Количество редиректов: " + countRedirect);
+        assertEquals(200, RestAssured.get().getStatusCode()); 
+    }
+}
