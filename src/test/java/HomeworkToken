@@ -1,0 +1,59 @@
+import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class HomeworkToken {
+    @Test
+    public void testRestAssured() throws InterruptedException {
+        //создали задачу, вызывая метод без параметра token и получили токен
+        JsonPath response = RestAssured
+                .given() 
+                .get("https://playground.learnqa.ru/ajax/api/longtime_job")
+                .jsonPath();
+        System.out.println("Задача создана:");
+        response.prettyPrint();
+        String valueToken = response.get("token");
+        int valueSeconds = response.get("seconds");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", valueToken);
+
+        //создали задачу и передаем токен до готовности задачи
+        JsonPath response1 = RestAssured
+                .given() 
+                .queryParams(params)
+                .get("https://playground.learnqa.ru/ajax/api/longtime_job")
+                .jsonPath(); 
+        String actualResponse = response1.getString("status"); 
+        String expectedResponse = "Job is NOT ready";
+
+        if (actualResponse.equals(expectedResponse)) { //проверка на правильность поля status
+            System.out.println("Задача еще не готова:");
+            response1.prettyPrint();
+        }
+        int milliseconds = valueSeconds * 1000;
+        Thread.sleep(milliseconds);
+        System.out.println("Время прошло: " + valueSeconds);
+
+        //делаем еще один запрос для проверки готовности задачи после ожидания
+        JsonPath response2 = RestAssured
+                .given() 
+                .queryParams(params)
+                .get("https://playground.learnqa.ru/ajax/api/longtime_job")
+                .jsonPath(); 
+        String actualResponse2 = response2.getString("status");
+        String expectedResponse2 = "Job is ready";
+        String result = response2.getString("result");
+
+
+        if (actualResponse2.equals(expectedResponse2) &&  result !=null && !result.isEmpty()) { //проверка на правильность поля status и наличие поля result
+            System.out.println("Задача готова:");
+            response2.prettyPrint();
+        } else {
+            System.out.println("Ошибка в статусе готовности / отсутствии поля result");
+        }
+    }
+}
