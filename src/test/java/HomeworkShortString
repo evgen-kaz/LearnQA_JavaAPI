@@ -1,0 +1,12 @@
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class HomeworkShortString {
+    String text = "Мы не выбираем времена. Мы можем только решать, как жить в те времена, которые выбрали нас";
+
+    @Test
+    public void test() {
+        assertTrue(text.length() >= 15, "В строке меньше 15 символов!");
+        System.out.println(text.length());
+    }
+}
