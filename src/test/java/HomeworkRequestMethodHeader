@@ -1,0 +1,18 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class HomeworkRequestMethodHeader {
+    @Test
+    public void testRestAssured() {
+        Response response = RestAssured
+                .when()
+                .get("https://playground.learnqa.ru/api/homework_header")
+                .andReturn(); //хотим вернуть результат запроса - икзекьютер
+
+        String headers = response.getHeader("X-Secret-Homework-Header");
+        assertEquals("Some secret value",headers, "Неверное значение заголовка");
+    }
+}
