@@ -1,0 +1,22 @@
+import io.restassured.RestAssured;
+import io.restassured.http.Cookie;
+import io.restassured.http.Cookies;
+import io.restassured.response.Response;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+public class HomeworkRequestMethodCookie {
+    @Test
+    public void testRestAssured() {
+        Response response = RestAssured
+                .when()
+                .get("https://playground.learnqa.ru/api/homework_cookie")
+                .andReturn();
+
+        Cookies cookies = response.detailedCookies();
+        assertNotNull(cookies);
+        assertEquals("hw_value",cookies.getValue("HomeWork"), "Неверное значение куки");
+    }
+}
