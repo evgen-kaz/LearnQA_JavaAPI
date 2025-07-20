@@ -1,0 +1,11 @@
+public class ExpectedResultUserAgent {
+    String platform;
+    String browser;
+    String device;
+
+    public ExpectedResultUserAgent(String platform, String browser, String device) {
+        this.platform = platform;
+        this.browser = browser;
+        this.device = device;
+    }
+}
