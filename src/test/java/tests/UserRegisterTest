@@ -1,0 +1,169 @@
+package tests;
+
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import lib.ApiCoreRequests;
+import lib.Assertions;
+import lib.BaseTestCase;
+import lib.DataGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import org.junit.jupiter.api.DisplayName;
+
+@Epic("Registration cases")
+@Feature("Registration")
+public class UserRegisterTest extends BaseTestCase {
+    private final ApiCoreRequests apiCoreRequests = new ApiCoreRequests();
+
+    @Description("This test failed to successfully register a user with an existing email.")
+    @DisplayName("Test negative Registration user")
+    @Test
+    public void testCreateUserWithExistingEmail() { 
+        String email = "vinkotov@example.com";
+
+        Map<String, String> userData = new HashMap<>();
+        userData.put("email", email);
+        userData = DataGenerator.getRegistrationData(userData);
+
+        Response responseCreateAuth = RestAssured
+                .given()
+                .body(userData)
+                .post("https://playground.learnqa.ru/api/user/")
+                .andReturn();
+
+        Assertions.assertResponseCodeEquals(responseCreateAuth, 400); 
+        Assertions.assertResponseTextEquals(responseCreateAuth, "Users with email '" + email + "' already exists"); 
+    }
+
+    @Description("This test successfully registered a user with a unique email.")
+    @DisplayName("Test positive Registration user")
+    @Test
+    public void testCreateUserSuccessfully() {
+        String email = DataGenerator.getRandomEmail();
+
+        Map<String, String> userData = DataGenerator.getRegistrationData();
+        Response responseCreateAuth = RestAssured
+                .given()
+                .body(userData)
+                .post("https://playground.learnqa.ru/api/user/")
+                .andReturn();
+
+        Assertions.assertResponseCodeEquals(responseCreateAuth, 200); 
+        System.out.println(responseCreateAuth.asString()); 
+        System.out.println("Был заргеистрирован с сгенерированным email: " + email);
+    }
+
+    @Description("This test did not register user with wrong email.")
+    @DisplayName("Test negative Registration user")
+    @Test
+    public void testCreateUserWithWrongEmail() {
+        String wrongEmail = "vinkotovexample.com";
+
+        Map<String, String> authData = new HashMap<>();
+        authData.put("email", wrongEmail);
+        authData.put("password", "123");
+        authData.put("username", "learnqa");
+        authData.put("firstName", "learnqa");
+        authData.put("lastName", "learnqa");
+
+        Response responseCreateAuth = apiCoreRequests
+                .makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+
+        Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+        Assertions.assertResponseTextEquals(responseCreateAuth, "Invalid email format");
+        System.out.println(responseCreateAuth.asString());
+    }
+
+    @Description("This test did not register user with one symbol in username.")
+    @DisplayName("Test negative Registration user")
+    @Test
+    public void testCreateUserWithOnlyOneSymbolUsername() {
+        String username = "1";
+
+        Map<String, String> authData = new HashMap<>();
+        authData.put("email", "email");
+        authData.put("password", "123");
+        authData.put("username", username);
+        authData.put("firstName", "learnqa");
+        authData.put("lastName", "learnqa");
+
+        Response responseCreateAuth = apiCoreRequests
+                .makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+
+        Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+        Assertions.assertResponseTextEquals(responseCreateAuth, "The value of 'username' field is too short");
+        System.out.println(responseCreateAuth.asString());
+    }
+
+    @Description("This test did not register user with long username.")
+    @DisplayName("Test negative Registration user")
+    @Test
+    public void testCreateUserWithLongUsername() {
+        String username = "ТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТест" +
+                "ТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТест" +
+                "ТестТестТестТестТестТестТестТестТестТестТестТестТестТестТестТес";
+
+        Map<String, String> authData = new HashMap<>();
+        authData.put("email", "email");
+        authData.put("password", "123");
+        authData.put("username", username);
+        authData.put("firstName", "learnqa");
+        authData.put("lastName", "learnqa");
+
+        Response responseCreateAuth = apiCoreRequests
+                .makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+
+        Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+        Assertions.assertResponseTextEquals(responseCreateAuth, "The value of 'username' field is too long");
+        System.out.println(responseCreateAuth.asString());
+    }
+
+    @Description("This test did not register user in the absence of any parameter.")
+    @DisplayName("Test negative Registration user")
+    @ParameterizedTest
+    @ValueSource(strings = {"email", "password", "username", "firstName", "lastName"})
+    public void testNegativeAuthUser(String condition) {
+        Map<String, String> authData = new HashMap<>();
+
+        if (condition.equals("email")) {
+            authData.put("email", "email");
+            Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+            Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+            Assertions.assertResponseTextEquals(responseCreateAuth, "The following required params are missed: password, username, firstName, lastName");
+        } else if (condition.equals("password")) {
+            authData.put("password", "123");
+            Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+            Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+            Assertions.assertResponseTextEquals(responseCreateAuth, "The following required params are missed: email, username, firstName, lastName");
+        }
+        else if (condition.equals("username")) {
+            authData.put("username", "learnqa");
+            Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+            Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+            Assertions.assertResponseTextEquals(responseCreateAuth, "The following required params are missed: email, password, firstName, lastName");
+        } else if (condition.equals("firstName")) {
+            authData.put("firstName", "learnqa");
+            Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+            Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+            Assertions.assertResponseTextEquals(responseCreateAuth, "The following required params are missed: email, password, username, lastName");
+        }
+        else if (condition.equals("lastName")) {
+            authData.put("lastName", "learnqa");
+            Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", authData);
+            Assertions.assertResponseCodeEquals(responseCreateAuth, 400);
+            Assertions.assertResponseTextEquals(responseCreateAuth, "The following required params are missed: email, password, username, firstName");
+        }
+        else {
+            throw new IllegalArgumentException("Condition value is know " + condition);
+        }
+    }
+
+}
