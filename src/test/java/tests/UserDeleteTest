@@ -1,0 +1,88 @@
+package tests;
+
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.restassured.response.Response;
+import lib.ApiCoreRequests;
+import lib.Assertions;
+import lib.BaseTestCase;
+import lib.DataGenerator;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Epic("Delete cases")
+@Feature("Delete")
+public class UserDeleteTest extends BaseTestCase {
+    private final ApiCoreRequests apiCoreRequests = new ApiCoreRequests();
+
+    @Description("This test negative delete user with user_id:2.")
+    @DisplayName("Test negative delete user.")
+    @Test
+    public void testDeleteUser() {
+        Map<String, String> authData = new HashMap<>();
+        authData.put("email", "vinkotov@example.com");
+        authData.put("password", "1234");
+
+        Response responseGetAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/login", authData);
+        String header = this.getHeader(responseGetAuth, "x-csrf-token"); 
+        String cookie = this.getCookie(responseGetAuth, "auth_sid"); 
+
+        Response responseUserData = apiCoreRequests.makeDeleteRequest("https://playground.learnqa.ru/api/user/2", header, cookie); 
+
+        Assertions.assertResponseCodeEquals(responseUserData, 400);
+        Assertions.assertResponseTextEquals(responseUserData, "{\"error\":\"Please, do not delete test users with ID 1, 2, 3, 4 or 5.\"}");
+    }
+
+    @Description("This test successfully delete user.")
+    @DisplayName("Test positive delete user.")
+    @Test
+    public void testSuccessfulDeleteUser() {
+        //GENERATOR USER
+        Map<String, String> userData = DataGenerator.getRegistrationData();
+        Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", userData);
+
+        //LOGIN USER
+        Map<String, String> authData = new HashMap<>();
+        authData.put("email", userData.get("email")); 
+        authData.put("password", userData.get("password"));
+
+        Response responseGetAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/login", authData);
+
+        String header = this.getHeader(responseGetAuth, "x-csrf-token"); 
+        String cookie = this.getCookie(responseGetAuth, "auth_sid"); 
+        int user_id = this.getIntFromJson(responseCreateAuth, "id"); 
+
+        Response responseUserData = apiCoreRequests.makeDeleteRequest("https://playground.learnqa.ru/api/user/" + user_id, header, cookie); 
+
+        Assertions.assertResponseCodeEquals(responseUserData, 200);
+        Assertions.assertResponseTextEquals(responseUserData, "{\"success\":\"!\"}");
+    }
+
+    @Description("This negative test is to delete another user.")
+    @DisplayName("Test negative delete another user.")
+    @Test
+    public void testNotSuccessfulDeleteAnotherUser() {
+        //GENERATOR USER
+        Map<String, String> userData = DataGenerator.getRegistrationData();
+        Response responseCreateAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/", userData);
+
+        //LOGIN USER
+        Map<String, String> authData = new HashMap<>();
+        authData.put("email", userData.get("email")); 
+        authData.put("password", userData.get("password"));
+
+        Response responseGetAuth = apiCoreRequests.makePostRequest("https://playground.learnqa.ru/api/user/login", authData);
+
+        String header = this.getHeader(responseGetAuth, "x-csrf-token"); 
+        String cookie = this.getCookie(responseGetAuth, "auth_sid");
+
+        Response responseUserData = apiCoreRequests.makeDeleteRequest("https://playground.learnqa.ru/api/user/2", header, cookie);
+
+        Assertions.assertResponseCodeEquals(responseUserData, 400);
+        Assertions.assertResponseTextEquals(responseUserData, "{\"error\":\"Please, do not delete test users with ID 1, 2, 3, 4 or 5.\"}");
+    }
+}
