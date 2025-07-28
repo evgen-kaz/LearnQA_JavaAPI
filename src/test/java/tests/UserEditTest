@@ -1,5 +1,6 @@
 package tests;
 
+import io.qameta.allure.*;
 import io.qameta.allure.Description;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class UserEditTest extends BaseTestCase {
     private final ApiCoreRequests apiCoreRequests = new ApiCoreRequests();
 
+    @Severity(SeverityLevel.CRITICAL)
     @Test
     public void testEditJustCreatedTest() {
         //GENERATOR USER
@@ -69,6 +71,7 @@ public class UserEditTest extends BaseTestCase {
 
     @Description("This test attempts to change user data without being logged in.")
     @DisplayName("Test negative")
+    @Severity(SeverityLevel.CRITICAL)
     @Test
     public void testEditWithoutAuthorization() {
         String newName = "Changed Name";
@@ -84,6 +87,7 @@ public class UserEditTest extends BaseTestCase {
 
     @Description("Test edit by another user.")
     @DisplayName("Test negative")
+    @Severity(SeverityLevel.CRITICAL)
     @Test
     public void testEditAnotherUser() {
         Map<String, String> authData = new HashMap<>();
@@ -106,6 +110,7 @@ public class UserEditTest extends BaseTestCase {
 
     @Description("This test edit mail to mail without @ symbol.")
     @DisplayName("Test negative edit mail.")
+    @Severity(SeverityLevel.NORMAL)
     @Test
     public void testEditMailUserToWrongMail() {
         //GENERATOR USER
@@ -136,6 +141,7 @@ public class UserEditTest extends BaseTestCase {
     @Description("This test edit firstName to very short value in one symbol.")
     @DisplayName("Test negative edit firstName.")
     @Test
+    @Severity(SeverityLevel.NORMAL)
     public void testEditUserFirstNameToVeryShort() {
         //GENERATOR USER
         Map<String, String> userData = DataGenerator.getRegistrationData();
